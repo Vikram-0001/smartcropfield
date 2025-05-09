@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" x-data>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Agricultural Yield Prediction</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.18.2.min.js"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('https://cdn.agdaily.com/wp-content/uploads/2018/09/bg-corn_field-001-naramit.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #000000;
+    }
+    h1, h2 {
+      color: #000000;
+    }
+    .btn {
+      background-color: #000000;
+    }
+    .btn:hover {
+      background-color: #000000;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-6 py-8">
+
+  <div class="max-w-5xl mx-auto">
+    <!-- Updated Heading -->
+    <h1 class="text-4xl font-bold text-center mb-10 underline">Smart Agricultural Yield Prediction</h1>
+
+    <!-- Updated Upload Form -->
+    <form class="mb-6" enctype="multipart/form-data" method="POST" action="/upload">
+      <label class="block mb-2 font-semibold text-lg">Upload Dataset (CSV):</label>
+      <input type="file" name="dataset" class="p-2 border rounded w-full mb-4">
+      <button type="submit" class="btn text-white px-4 py-2 rounded">Upload</button>
+    </form>
+
+    <!-- Expandable Sections -->
+    <form method="POST" action="/predict">
+      <template x-for="section in ['Weather', 'Soil', 'Crop Info', 'Farming Practices', 'Location']">
+        <div x-data="{ open: false }" class="mb-6">
+          <button type="button" @click="open = !open" class="btn text-white px-4 py-2 rounded w-full text-left">
+            <span x-text="section"></span>
+          </button>
+          <div x-show="open" class="grid grid-cols-2 gap-4 mt-4 bg-white bg-opacity-20 p-4 rounded text-white">
+            <template x-if="section === 'Weather'">
+              <div class="contents">
+                <input type="number" placeholder="Rainfall (mm)" name="rainfall" class="p-2 border rounded">
+                <input type="number" placeholder="Temperature (°C)" name="temperature" class="p-2 border rounded">
+                <input type="number" placeholder="Humidity (%)" name="humidity" class="p-2 border rounded">
+                <input type="number" placeholder="Sunshine Hours" name="sunshine" class="p-2 border rounded">
+              </div>
+            </template>
+            <template x-if="section === 'Soil'">
+              <div class="contents">
+                <input type="number" placeholder="Soil pH" name="ph" class="p-2 border rounded">
+                <input type="number" placeholder="Nitrogen (N)" name="nitrogen" class="p-2 border rounded">
+                <input type="number" placeholder="Phosphorus (P)" name="phosphorus" class="p-2 border rounded">
+                <input type="number" placeholder="Potassium (K)" name="potassium" class="p-2 border rounded">
+                <input type="number" placeholder="Moisture Content (%)" name="moisture" class="p-2 border rounded">
+              </div>
+            </template>
+            <template x-if="section === 'Crop Info'">
+              <div class="contents">
+                <input type="text" placeholder="Crop Type" name="crop" class="p-2 border rounded">
+                <input type="text" placeholder="Sowing Time" name="sowing" class="p-2 border rounded">
+                <input type="text" placeholder="Harvest Time" name="harvest" class="p-2 border rounded">
+              </div>
+            </template>
+            <template x-if="section === 'Farming Practices'">
+              <div class="contents">
+                <input type="text" placeholder="Fertilizer Used" name="fertilizer" class="p-2 border rounded">
+                <input type="text" placeholder="Irrigation Type" name="irrigation" class="p-2 border rounded">
+                <input type="text" placeholder="Pesticide Usage" name="pesticide" class="p-2 border rounded">
+              </div>
+            </template>
+            <template x-if="section === 'Location'">
+              <div class="contents">
+                <input type="text" placeholder="Region/State" name="region" class="p-2 border rounded">
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <button type="submit" class="mt-4 w-full btn text-white p-3 rounded">Predict Yield</button>
+    </form>
+
+    <!-- Result -->
+    <div class="mt-6 text-xl font-bold text-center">
+      {% if prediction %}
+        Predicted Yield: {{ prediction }} kg/ha
+      {% endif %}
+    </div>
+
+    <!-- EDA Charts -->
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold mb-4">Exploratory Data Analysis (EDA)</h2>
+
+      <canvas id="lineChart" height="100" class="mb-10"></canvas>
+      <canvas id="barChart" height="100" class="mb-10"></canvas>
+      <div id="heatmap" class="mb-10"></div>
+    </div>
+  </div>
+
+  <!-- Chart Script -->
+  <script>
+    // Line Chart - Sales Over Time
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [{
+          label: 'Total Yield (tons)',
+          data: [120, 140, 180, 160, 200],
+          borderColor: '#000000',
+          backgroundColor: 'rgba(0,0,0,0.2)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#000', font: { weight: 'bold' } } } },
+        scales: {
+          x: { ticks: { color: '#000', font: { weight: 'bold' } }, grid: { color: 'rgba(0,0,0,0.2)' }},
+          y: { ticks: { color: '#000', font: { weight: 'bold' } }, grid: { color: 'rgba(0,0,0,0.2)' }}
+        }
+      }
+    });
+
+    // Bar Chart - Avg Sales by Weekday/Festival
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Festival'],
+        datasets: [{
+          label: 'Avg Yield (kg)',
+          data: [150, 170, 160, 180, 175, 190, 220],
+          backgroundColor: '#000000'
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#000', font: { weight: 'bold' } } } },
+        scales: {
+          x: { ticks: { color: '#000', font: { weight: 'bold' } }, grid: { color: 'rgba(0,0,0,0.2)' }},
+          y: { ticks: { color: '#000', font: { weight: 'bold' } }, grid: { color: 'rgba(0,0,0,0.2)' }}
+        }
+      }
+    });
+
+    // Heatmap - Correlation Example (Dummy Data)
+    const heatmapData = {
+      z: [
+        [1, 0.8, 0.6],
+        [0.8, 1, 0.7],
+        [0.6, 0.7, 1]
+      ],
+      x: ['Rainfall', 'Temperature', 'Yield'],
+      y: ['Rainfall', 'Temperature', 'Yield'],
+      type: 'heatmap',
+      colorscale: 'Greys'
+    };
+
+    Plotly.newPlot('heatmap', [heatmapData], {
+      margin: { t: 40 },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    });
+  </script>
+</body>
+</html>
